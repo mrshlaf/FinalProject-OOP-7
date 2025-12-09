@@ -287,8 +287,7 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         if(terrain != null) terrain.dispose();
-        if(treeModel != null) treeModel.dispose(); // bersihin tree
         if(modelBatch != null) modelBatch.dispose(); // bersihin modelbatch
-        if(assets != null) assets.dispose(); // bersihin assets
+        if(assets != null) assets.dispose(); // bersihin assets model dan texturenya yg udh diload
     }
 }
