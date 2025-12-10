@@ -22,7 +22,7 @@ Game ini disubmit untuk memenuhi tugas akhir dan dapat dimainkan melalui **itch.
 
 ## 👨‍🏫 Aslab Pendamping
 
-| Nama Asisten [Kode]     | NPM        |
+| Nama Aslab [Kode Aslab] | NPM        |
 | :---------------------- | :--------- |
 | **Shafwan Hasyim [SH]** | 2306209113 |
 
