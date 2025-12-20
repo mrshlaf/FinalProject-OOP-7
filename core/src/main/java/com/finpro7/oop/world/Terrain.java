@@ -23,7 +23,7 @@ public class Terrain implements Disposable {
 
     private float mountainRadius; // radius gunungnyaa, lebar gunungnya makan tempat di map
     private float mountainPower = 2.4f; // keruncingannya, makin besar makin runcing
-//    private float bumpsStrength = 0.35f; // buat ngatur seberaapa keras permukaan gunungnya
+    //    private float bumpsStrength = 0.35f; // buat ngatur seberaapa keras permukaan gunungnya
     private float hillHeightEdge = 5.0f;  // bukit kecil di pinggir
     private float hillHeightPeak = 10.0f; // tinggi tambahan pas makin deket ke puncak
 

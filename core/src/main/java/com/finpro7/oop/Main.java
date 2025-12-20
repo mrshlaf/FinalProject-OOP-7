@@ -54,7 +54,7 @@ public class Main extends ApplicationAdapter {
         // setup kamera perspektif biar kyak mata manusia ada jauh dekatnya
         cam = new PerspectiveCamera(67f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cam.near = 0.1f; // jarak pandang terdekat
-        cam.far = 800f; // jarak pandang terjauh
+        cam.far = 350f; // jarak pandang terjauh (dipendekin buat efek kabut)
         // buat setup pencahayaan biar gak gelap gulita
         env = new Environment();
         env.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.6f, 0.6f, 0.6f, 1f)); // cahaya dasar
@@ -229,9 +229,6 @@ public class Main extends ApplicationAdapter {
                 if(safeZ) cam.position.z += stepZ;
             }
         }
-        // buat tes doang, kalo space/ctrl bisa terbang
-//        if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) cam.position.y += speed * 0.6f * delta;
-//        if(Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) cam.position.y -= speed * 0.6f * delta;
         // kalo pencet spasi dan lagi napak tanah biar gaa double jump di udara
         if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && isGrounded){
             verticalVelocity = jumpForce; // dorong ke atas alias loncat
@@ -244,7 +241,6 @@ public class Main extends ApplicationAdapter {
         // batesin gerak biar ga keluar map atau biar gk clamp
         cam.position.x = terrain.clampX(cam.position.x, margin);
         cam.position.z = terrain.clampZ(cam.position.z, margin);
-//        cam.position.y = terrain.getHeight(cam.position.x, cam.position.z) + eyeHeight; // buat cari tinggi tanah x z di terrain
         verticalVelocity -= gravity * delta; // ngurangin kecepatan vertikal pake gravitasi tiap frame
         cam.position.y += verticalVelocity * delta; // nerapin kecepatan juga ke posisi kamera
         // ngecek nyentuh tanah apa engga
@@ -256,7 +252,6 @@ public class Main extends ApplicationAdapter {
             verticalVelocity = 0f; // reset kecepatan jatuhnya
             isGrounded = true; // set kaki napak tanah
         }else isGrounded = false; // kaloo ga napak tanah berarti lagi loncat jadi set ke false;
-//        cam.update();
     }
 
     @Override
@@ -269,7 +264,7 @@ public class Main extends ApplicationAdapter {
         cam.update(); // update kamera cuman di sini, buat nyegah snap
         // bersihin layar
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        Gdx.gl.glClearColor(0.08f, 0.1f, 0.14f, 1f);
+        Gdx.gl.glClearColor(0.78f, 0.80f, 0.82f, 1f); // warna kabut abu-abu keputihan
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
         Gdx.gl.glEnable(GL20.GL_CULL_FACE); // optimasi biar ga render sisi belakang
