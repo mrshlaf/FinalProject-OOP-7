@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.finpro7.oop.world.Terrain;
@@ -38,12 +39,10 @@ public class MenuScreen implements Screen {
     private Environment env;
     private ModelBatch modelBatch;
     private RenderContext renderContext;
-
     private Terrain terrain;
     private PerlinNoise perlin;
     private Model treeModel;
     private Array<ModelInstance> treeInstances = new Array<>();
-
     private float camTimer = 0f;
     private final Color SKY_COLOR = new Color(0.5f, 0.6f, 0.7f, 1f);
 
@@ -53,85 +52,101 @@ public class MenuScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        setupUI();
         setupBackgroundWorld();
+        setupUI();
     }
 
     private void setupUI() {
         Table rootTable = new Table();
         rootTable.setFillParent(true);
 
-        TextureRegionDrawable panelDrawable = createColorDrawable(new Color(0f, 0f, 0f, 0.6f));
-        TextureRegionDrawable lineDrawable = createColorDrawable(new Color(1f, 1f, 1f, 0.3f));
+        TextureRegionDrawable panelDrawable = createColorDrawable(new Color(0f, 0f, 0f, 0.75f));
+        TextureRegionDrawable lineDrawable = createColorDrawable(new Color(1f, 1f, 1f, 0.5f));
 
         Table titleTable = new Table();
         titleTable.setBackground(panelDrawable);
         titleTable.pad(30);
 
         Label title = new Label("DAJJAL", Main.skin, "title");
-        title.setFontScale(3.0f);
+        title.setFontScale(6.0f);
 
-        Label subtitle = new Label("THE LAST WAR!", Main.skin, "subtitle");
+        Label subtitle = new Label("THE LAST WAR", Main.skin, "subtitle");
         subtitle.setColor(Color.ORANGE);
+        subtitle.setFontScale(1.5f);
 
         Image separator = new Image(lineDrawable);
 
-        Label statusLabel = new Label("DEPARTEMEN TEKNIK ELEKTRO\nFAKULTAS TEKNIK UNIVERSITAS INDONESIA", Main.skin, "text");
-        statusLabel.setColor(Color.GREEN);
+        Label deptLabel = new Label("DEPARTEMEN TEKNIK KOMPUTER\nFAKULTAS TEKNIK UI", Main.skin, "text");
+        deptLabel.setColor(Color.CYAN);
+        deptLabel.setFontScale(0.9f);
 
         titleTable.add(title).left().row();
         titleTable.add(subtitle).left().padBottom(10).row();
-        titleTable.add(separator).growX().height(2).padBottom(10).row();
-        titleTable.add(statusLabel).left();
+        titleTable.add(separator).growX().height(3).padBottom(10).row();
+        titleTable.add(deptLabel).left();
 
         Table menuTable = new Table();
         menuTable.setBackground(panelDrawable);
-        menuTable.pad(30);
+        menuTable.pad(40);
+
+        Label menuLabel = new Label("MISSION CONTROL", Main.skin, "subtitle");
+        menuLabel.setAlignment(Align.center);
+        menuLabel.setColor(Color.GOLD);
 
         TextButton btnStart = new TextButton("DEPLOY MISSION", Main.skin, "btn-main");
-        btnStart.getLabel().setFontScale(1.1f);
+        TextButton btnSettings = new TextButton("SETTINGS", Main.skin, "btn-main");
+        TextButton btnLogout = new TextButton("LOGOUT", Main.skin, "btn-main");
+        TextButton btnExit = new TextButton("EXIT GAME", Main.skin, "btn-main");
+
+        menuTable.add(menuLabel).padBottom(20).row();
+        menuTable.add(btnStart).width(300).height(60).padBottom(10).row();
+        menuTable.add(btnSettings).width(300).height(60).padBottom(10).row();
+        menuTable.add(btnLogout).width(300).height(60).padBottom(10).row();
+        menuTable.add(btnExit).width(300).height(60).row();
+
+        Table footerTable = new Table();
+        footerTable.setBackground(panelDrawable);
+        footerTable.pad(10);
+        Label verLabel = new Label("VERSION: 1.2.0 STABLE", Main.skin, "text");
+        Label copyLabel = new Label(" | (C) 2025 KELOMPOK 7 OOP", Main.skin, "text");
+        verLabel.setColor(Color.GRAY);
+        footerTable.add(verLabel);
+        footerTable.add(copyLabel);
+
+        rootTable.add(titleTable).expand().top().left().pad(50);
+        rootTable.row();
+        rootTable.add(footerTable).expandX().bottom().left().pad(20);
+        rootTable.add(menuTable).bottom().right().pad(50);
+
+        stage.addActor(rootTable);
+
         btnStart.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new GameScreen(game));
-                dispose();
             }
         });
 
-        TextButton btnExit = new TextButton("EXIT", Main.skin, "btn-main");
+        btnSettings.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("Settings clicked");
+            }
+        });
+
+        btnLogout.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new LoginScreen(game));
+            }
+        });
+
         btnExit.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 Gdx.app.exit();
             }
         });
-
-        menuTable.add(btnStart).width(350).height(70).padBottom(15).row();
-        menuTable.add(btnExit).width(350).height(60).row();
-
-        Table infoTable = new Table();
-        infoTable.setBackground(panelDrawable);
-        infoTable.pad(10);
-        Label verLabel = new Label("BUILD: v1.2.0 STABLE", Main.skin, "text");
-        Label copyLabel = new Label("COPYRIGHT 2025 FINPRO OOP KELOMPOK 7", Main.skin, "text");
-        infoTable.add(verLabel).left().padRight(20);
-        infoTable.add(copyLabel).left();
-
-        rootTable.add(titleTable).expand().top().left().pad(40);
-        rootTable.row();
-        rootTable.add(infoTable).expandX().bottom().left().pad(20);
-        rootTable.add(menuTable).bottom().right().pad(40);
-
-        stage.addActor(rootTable);
-    }
-
-    private TextureRegionDrawable createColorDrawable(Color color) {
-        Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pm.setColor(color);
-        pm.fill();
-        Texture tex = new Texture(pm);
-        pm.dispose();
-        return new TextureRegionDrawable(new TextureRegion(tex));
     }
 
     private void setupBackgroundWorld() {
@@ -164,6 +179,15 @@ public class MenuScreen implements Screen {
 
         terrain = new Terrain(env, perlin, 200, 200, 500f, 500f);
         terrain.generateTrees(treeModel, treeInstances, 800);
+    }
+
+    private TextureRegionDrawable createColorDrawable(Color color) {
+        Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pm.setColor(color);
+        pm.fill();
+        Texture tex = new Texture(pm);
+        pm.dispose();
+        return new TextureRegionDrawable(new TextureRegion(tex));
     }
 
     @Override
@@ -208,15 +232,15 @@ public class MenuScreen implements Screen {
         cam.update();
     }
 
-    @Override public void show() {}
-    @Override public void hide() {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-
     @Override
     public void dispose() {
         stage.dispose();
         if(modelBatch != null) modelBatch.dispose();
         if(terrain != null) terrain.dispose();
     }
+
+    @Override public void show() {}
+    @Override public void hide() {}
+    @Override public void pause() {}
+    @Override public void resume() {}
 }
