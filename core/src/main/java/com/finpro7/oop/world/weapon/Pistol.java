@@ -20,7 +20,7 @@ public class Pistol extends Firearm {
         this.aimSightZ = -0.7f;
         this.ammoInClip = 10; // peluru dikit khas pistol
         this.maxAmmoInClip = 10;
-        this.totalAmmo = 75;      // cadangan peluru 30
+        this.totalAmmo = 250;
         this.reloadSpeed = 2.0f; // reload agak santai
         this.damage = 6f; // damage per peluru lebih gede dari rifle buat balancing
 
@@ -31,7 +31,6 @@ public class Pistol extends Firearm {
         this.recoverySpeed = 4.0f; // kecepatan balik ke posisi normal
         this.knockback = 2f; // dorongan ke musuh
         this.meshNames.clear();
-        // ambil ID "pistol" dari file weapons.g3db
         this.meshNames.add("pistol");
         this.mods.add("Pistol");
     }
@@ -52,10 +51,8 @@ public class Pistol extends Firearm {
         return pistol;
     }
 
-    // bagian buat ngerakit model 3D berdasarkan mesh yang kepilih
     public void updateModel() {
         if (Main.weaponsModel != null) {
-            // ini bagian sakti: bikin model cuma dari potongan-potongan ID yang ada di meshNames
             viewModel = new ModelInstance(Main.weaponsModel, meshNames);
         }
     }

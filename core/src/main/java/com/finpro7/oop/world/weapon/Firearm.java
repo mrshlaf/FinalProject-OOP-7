@@ -74,7 +74,7 @@ public abstract class Firearm {
             float finalScaleX = scaleX;
             float finalScaleY = scaleY;
             float finalScaleZ = scaleZ;
-            // Bikin model 3D ngikutin gerakan kamera secara real-time
+            // Bikin model 3D ngikutin gerakan kamera secara realtime
             viewModel.transform.set(camera.view).inv();
 
             viewModel.transform
