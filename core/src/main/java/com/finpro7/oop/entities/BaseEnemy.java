@@ -1,6 +1,9 @@
 package com.finpro7.oop.entities;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
@@ -20,6 +23,8 @@ public abstract class BaseEnemy {
     // var bantu buat collision
     private final Vector3 collisionNormal = new Vector3();
     private final Vector3 slideDirection = new Vector3();
+    public boolean isReadyToRemove = false; // Bendera buat ngasih tau GameScreen "Hapus gue dong"
+    private float deathTimer = 0f; // Timer buat animasi jatuh
 
     // stats dasar musuhnya
     public float health;
@@ -37,8 +42,14 @@ public abstract class BaseEnemy {
     public boolean isRising = false;
     public boolean countedAsDead = false; // penanda biar kill count gak keitung dobel
 
+    // visual hit
+    private float hitFlashTimer = 0f; //timer buat efek kedip
+    private final Color originalColor = new Color(1,1,1,1); // warna asli
+    private final Color hitColor = new Color(1, 0, 0, 1);   // warna merah
+
     private final float BODY_SCALE = 0.022f;
     protected State currentState;
+    protected float currentYaw = 0f;
 
     // nama animasi bawaan dari blender
     protected String ANIM_IDLE = "Armature|idle";
@@ -52,16 +63,57 @@ public abstract class BaseEnemy {
     public BaseEnemy() { }
 
     public void update(float delta, Vector3 playerPos, Terrain terrain, Array<ModelInstance> trees, Array<BaseEnemy> allEnemies) {
-        if(isDead) return;
-        if(animController != null) animController.update(delta);
+        if(isReadyToRemove) return;
         targetPos.set(playerPos);
+        if(animController != null) animController.update(delta);
+        // Update State
         if(currentState != null) currentState.update(delta, playerPos, terrain, trees, allEnemies);
-        // kalo lagi emerge atau muncul tingginya diatur manual sama statenya, kalo udah ngejar tempel kakinya ke tanah
-        if(!isRising) position.y = terrain.getHeight(position.x, position.z);
-        modelInstance.transform.setToTranslation(position);
-        // logika rotasi pindah kesini biar pas emerge dia tetep muter ngadep player
-        rotateTowardsPlayer();
-        modelInstance.transform.scale(BODY_SCALE, BODY_SCALE, BODY_SCALE);
+        // kalo mati kita serahin urusan posisi/rotasi ke DeathState sepenuhnya.
+        // BaseEnemy cuma ngurus transform kalo dia masih HIDUP.
+        if (!isDead) {
+            if(!isRising) position.y = terrain.getHeight(position.x, position.z);
+            modelInstance.transform.setToTranslation(position);
+            rotateTowardsPlayer();
+            modelInstance.transform.scale(BODY_SCALE, BODY_SCALE, BODY_SCALE);
+        }
+        // Logika kedip merah
+        if (hitFlashTimer > 0) {
+            hitFlashTimer -= delta;
+            if (hitFlashTimer <= 0) setColor(Color.WHITE);
+        }
+    }
+
+    // kena damage
+    public void takeDamage(float amount, Terrain terrain){
+        if (isDead || isRising) return;
+        health -= amount;
+        // set warna jadi merah
+        setColor(Color.RED);
+        hitFlashTimer = 0.1f; // kedip merah selama 0.1 detik
+        // Cek Mati
+        if(health <= 0){
+            health = 0;
+            isDead = true;
+            setColor(Color.WHITE); // Reset warna merah
+            switchState(new DeathState(), terrain); // Masuk animasi mati
+        }
+    }
+
+    // method helper buat ganti warna material model
+    private void setColor(Color color){
+        // ubah warna Diffuse (warna dasar) semua material di model ini
+        for(Material mat : modelInstance.materials){
+            ColorAttribute attrib = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
+            if(attrib != null) attrib.color.set(color);
+        }
+    }
+
+    private void die(){
+        isDead = true;
+        setColor(Color.WHITE);
+        // animController.animate("death", 1, 1f, null, 0.2f);
+        // kalo gak ada animasi mati lempar dia ke bawah tanah atau ilangin
+        position.y -= 1000f; // cara kasar ngilangin mayat :v
     }
 
     private void rotateTowardsPlayer(){
@@ -70,6 +122,7 @@ public abstract class BaseEnemy {
         // pake atan2 biar dapet sudut yang bener 360 derajat
         float angleYaw = MathUtils.atan2(dx, dz) * MathUtils.radiansToDegrees;
         // tambahin interpolasi dikit biar muternya alus gak patah patah banget opsional, tapi langsung set juga biar responsif
+        this.currentYaw = angleYaw;
         modelInstance.transform.rotate(Vector3.Y, angleYaw);
     }
 
@@ -242,6 +295,61 @@ public abstract class BaseEnemy {
                 }
             }
             if(timer > 1.2f) switchState(new ChaseState(), terrain); // durasi animasi kelar
+        }
+    }
+
+    // Import Quaternion jangan lupa (biasanya udah auto import, kalo belum tambahin ini di atas: import com.badlogic.gdx.math.Quaternion;)
+    public class DeathState extends State {
+        // Kita pake Quaternion biar nyimpen rotasinya AKURAT 100%
+        private final com.badlogic.gdx.math.Quaternion savedRotation = new com.badlogic.gdx.math.Quaternion();
+        private float savedYaw = 0f;
+        private float currentPitch = 0f; // Sudut rebahan
+
+        @Override
+        public void enter(Terrain terrain){
+            // 1. Matikan animasi jalan/lari, ganti idle atau pose mati
+            if(animController != null) animController.setAnimation(ANIM_IDLE, -1, 1f, null);
+
+            this.savedYaw = BaseEnemy.this.currentYaw;
+            // Kita ambil rotasi persis saat dia mati, simpen di savedRotation
+//            modelInstance.transform.getRotation(savedRotation);
+        }
+
+        @Override
+        public void update(float delta, Vector3 playerPos, Terrain terrain, Array<ModelInstance> trees, Array<BaseEnemy> activeEnemies) {
+            deathTimer += delta;
+
+            // FASE 1: REBAHAN (0 detik - 1 detik)
+            if (deathTimer < 1.0f) {
+                // Nambah sudut rebahan pelan-pelan sampe -90 derajat
+                // Interpolasi biar jatuhnya halus (makin lama makin cepet dikit)
+                currentPitch = MathUtils.lerp(currentPitch, -90f, delta * 5f);
+            }
+            // FASE 2: TENGGELAM (Setelah 1 detik)
+            else {
+                currentPitch = -90f; // Pastikan udah rebahan total
+                position.y -= 1.5f * delta; // Turun ke bawah tanah
+            }
+
+            // --- PENERAPAN TRANSFORMASI MANUAL ---
+            // Karena di update() utama kita skip transform pas mati, kita harus susun manual di sini.
+            // Urutannya PENTING: Posisi -> Rotasi Asli -> Rotasi Rebahan -> Scale
+            modelInstance.transform.idt();
+            // 2. Pindahin ke lokasi mayat (X, Y yg tenggelam, Z)
+            modelInstance.transform.translate(position);
+            // 3. Putar Y (Hadap ke arah player terakhir) - INI PENTING DULUAN
+            modelInstance.transform.rotate(Vector3.Y, savedYaw);
+            // 4. Putar X (Rebahan ke belakang)
+            // Karena Y udah diputar, X sekarang jadi "X Lokal" (samping kanan kiri musuh)
+            // Jadi dia bakal rebahan ke belakang punggungnya sendiri
+            modelInstance.transform.rotate(Vector3.X, currentPitch);
+            // 5. Kembalikan ukuran
+            modelInstance.transform.scale(BODY_SCALE, BODY_SCALE, BODY_SCALE); // 4. Balikin ukurannya
+
+            // FASE 3: HAPUS (Setelah 3 detik)
+            if (deathTimer > 3.0f) {
+                isReadyToRemove = true;
+            }
         }
     }
 }

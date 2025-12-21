@@ -36,6 +36,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 // Import Entities & Logics
 import com.finpro7.oop.entities.BaseEnemy;
+import com.finpro7.oop.entities.Coin;
 import com.finpro7.oop.entities.EnemyFactory;
 import com.finpro7.oop.logics.WaveManager;
 import com.finpro7.oop.world.Terrain;
@@ -52,6 +53,10 @@ public class GameScreen implements Screen {
     private RenderContext renderContext;
     private ModelBatch modelBatch;
 
+    private Array<Coin> activeCoins = new Array<>(); // List koin
+    private Model coinModel; // Cetakan modelnya
+    private int score = 0; // Skor player
+
     // FPS WEAPON SYSTEM (Punya Kamu)
     private SpriteBatch uiBatch;
     private Texture crosshairTex;
@@ -67,6 +72,7 @@ public class GameScreen implements Screen {
     private PerlinNoise perlin;
     private Model treeModel;
     private Array<ModelInstance> treeInstances = new Array<>();
+    private final Vector3 tempHitCenter = new Vector3();
 
     // Entity Spesial (Dajjal)
     private Model dajjalModel;
@@ -84,6 +90,7 @@ public class GameScreen implements Screen {
     private float sprintMul = 2.0f;
     private float eyeHeight = 2.0f;
     private float margin = 1.5f;
+
 
     // Fisika
     private float verticalVelocity = 0f;
@@ -112,6 +119,9 @@ public class GameScreen implements Screen {
     private Label notificationLabel; // Notifikasi besar
     private Table hudTable;
     private float warningCooldown = 0f;
+    // hit maker
+    private float hitMarkerTimer = 0f; // timer buat nampilin tanda X
+    private Texture hitMarkerTex; // gambar tanda X (pake crosshair aja diwarnain merah nanti)
 
     public GameScreen(final Main game) {
         this.game = game;
@@ -125,6 +135,7 @@ public class GameScreen implements Screen {
         uiBatch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         crosshairTex = game.assets.get("textures/crosshair.png", Texture.class);
+        hitMarkerTex = crosshairTex; // kita pake gambar yg sama aja biar hemat, nanti ditint merah
 
         // Setup Weapon Inventory
         inventory.add(com.finpro7.oop.world.weapon.AkRifle.generateDefault());
@@ -163,6 +174,11 @@ public class GameScreen implements Screen {
         perlin.frequencyZ = 0.08f;
         perlin.offsetX = MathUtils.random(0f, 999f);
         perlin.offsetZ = MathUtils.random(0f, 999f);
+        ModelBuilder mb = new ModelBuilder();
+        // Bikin silinder gepeng warna Emas (Gold)
+        coinModel = mb.createCylinder(1f, 0.1f, 1f, 20,
+            new Material(ColorAttribute.createDiffuse(Color.GOLD)),
+            VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
         treeModel = game.assets.get("models/pohon.g3dj", Model.class);
         dajjalModel = game.assets.get("models/dajjal.g3db", Model.class); // Pastikan ini benar (bukan yajuj)
@@ -372,20 +388,48 @@ public class GameScreen implements Screen {
 
             // 3. Update Text UI
             stageLabel.setText("STAGE " + waveManager.getCurrentStageNum());
-            int sisa = waveManager.getRemainingEnemies();
-            enemyCountLabel.setText("HOSTILES LEFT: " + sisa);
-            if(sisa <= 3) enemyCountLabel.setColor(Color.RED);
+            int totalJatahStage = waveManager.getTotalEnemiesInStage();
+            int sisaGlobal = waveManager.getRemainingEnemies();
+            enemyCountLabel.setText("ENEMIES: " + sisaGlobal + " / " + totalJatahStage);
+            if(sisaGlobal <= 3) enemyCountLabel.setColor(Color.RED);
             else enemyCountLabel.setColor(Color.WHITE);
 
-            // 4. Update Tiap Musuh (Yajuj Majuj)
-            for(int i = 0; i < activeEnemies.size; i++){
+            for(int i = activeEnemies.size - 1; i >= 0; i--){
                 BaseEnemy enemy = activeEnemies.get(i);
+
                 enemy.update(delta, cam.position, terrain, treeInstances, activeEnemies);
 
-                // Hapus musuh mati (Logic cleanup)
-                if(enemy.isDead && enemy.countedAsDead){
-                    // Bisa ditambahkan logika remove dari array disini jika ingin hemat memori
-                    // tapi pastikan pakai iterator.remove() atau loop terbalik
+                // 1. CEK MATI (Coin Spawn Pindah Sini)
+                if(enemy.isDead && !enemy.countedAsDead){
+                    waveManager.reportEnemyDeath();
+                    enemy.countedAsDead = true;
+
+                    // Jadi pas nyawanya abis, koin langsung njeblug keluar, gak nunggu mayat ilang.
+                    // Tinggi spawnnya (y) kita ambil dari posisi musuh + 1.0f biar gak kelelep tanah
+                    Coin c = new Coin(coinModel, enemy.position.x, enemy.position.y + 1.0f, enemy.position.z);
+                    activeCoins.add(c);
+
+                }
+
+                // 2. CEK HAPUS MEMORI (Mayat udah selesai animasi tenggelam)
+                if(enemy.isReadyToRemove){
+                    // Hapus kodingan spawn coin yang lama di sini, biar gak dobel
+                    activeEnemies.removeIndex(i);
+                    continue;
+                }
+            }
+
+            for(int i = activeCoins.size - 1; i >= 0; i--) {
+                Coin c = activeCoins.get(i);
+                c.update(delta); // Muterin koin
+
+                // Cek Jarak Player ke Koin (1.5 meter)
+                if (cam.position.dst(c.position) < 1.5f) {
+                    activeCoins.removeIndex(i); // Hapus koin
+                    score += 10; // Nambah skor
+                    // Update UI Skor disini kalo mau, misal:
+                    // enemyCountLabel.setText("LEFT: " + ... + " | SCORE: " + score);
+                    System.out.println("SCORE: " + score);
                 }
             }
 
@@ -401,6 +445,8 @@ public class GameScreen implements Screen {
         }
 
         cam.update();
+
+        if(hitMarkerTimer > 0) hitMarkerTimer -= delta;
 
         // RENDER START
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -419,6 +465,9 @@ public class GameScreen implements Screen {
 
         // RENDER MUSUH (Yajuj Majuj)
         for(BaseEnemy enemy : activeEnemies) modelBatch.render(enemy.modelInstance, env);
+        for(Coin c : activeCoins) {
+            modelBatch.render(c.instance, env);
+        }
 
         // Render Senjata (ViewModel)
         if (playerWeapon != null && playerWeapon.viewModel != null) {
@@ -435,6 +484,8 @@ public class GameScreen implements Screen {
 
         modelBatch.end();
 
+
+
         // Render Bullet Tracer
         if (bulletTracerTimer > 0) {
             shapeRenderer.setProjectionMatrix(cam.combined);
@@ -448,12 +499,20 @@ public class GameScreen implements Screen {
             shapeRenderer.end();
         }
 
+
         // Render UI
         stage.act(delta);
 
         // Crosshair
         uiBatch.begin();
+        uiBatch.setColor(Color.WHITE);
         uiBatch.draw(crosshairTex, Gdx.graphics.getWidth() / 2f - 16, Gdx.graphics.getHeight() / 2f - 16, 32, 32);
+        if(hitMarkerTimer > 0){
+            uiBatch.setColor(Color.RED); // Ubah warna jadi merah
+            // Gambar agak miring atau lebih kecil di tengah crosshair
+            uiBatch.draw(hitMarkerTex, Gdx.graphics.getWidth()/2f - 12, Gdx.graphics.getHeight()/2f - 12, 24, 24);
+            uiBatch.setColor(Color.WHITE); // Balikin warna normal
+        }
         uiBatch.end();
 
         stage.draw();
@@ -672,18 +731,21 @@ public class GameScreen implements Screen {
         // Loop semua musuh aktif (Yajuj Majuj)
         for(BaseEnemy enemy : activeEnemies){
             if(enemy.isDead) continue;
+            tempHitCenter.set(enemy.position);
+            tempHitCenter.y += 2.8f;
 
             Vector3 enemyPos = enemy.position;
             float radius = 1.0f; // Bounding sphere sederhana
 
-            if (Intersector.intersectRaySphere(ray, enemyPos, radius, null)) {
-                float dist = cam.position.dst(enemyPos);
+            if (Intersector.intersectRaySphere(ray, tempHitCenter, 0.8f, null)) {
+                float dist = cam.position.dst(enemy.position);
                 if(dist < closestDist){
                     closestDist = dist;
                     hitEnemy = enemy;
                 }
             }
         }
+
 
         // Cek kena Dajjal juga (Opsional, kalau Dajjal ada bounding boxnya)
         if(dajjal != null) {
@@ -693,18 +755,22 @@ public class GameScreen implements Screen {
 
         // Kalau ada yang kena
         if(hitEnemy != null){
-            // Kurangi darah musuh (Damage AK misal 15, Pistol 10)
             float damage = (playerWeapon instanceof com.finpro7.oop.world.weapon.AkRifle) ? 15f : 10f;
-            hitEnemy.health -= damage;
 
-            // Update ujung tracer biar berenti pas di badan musuh
+            // 1. Panggil fungsi sakit
+            hitEnemy.takeDamage(damage, terrain);
+
+            // 2. Trigger Hit Marker UI
+            hitMarkerTimer = 0.1f; // Munculin tanda X selama 0.1 detik
+
+            // 3. Update Tracer
             bulletDest.set(ray.direction).scl(closestDist).add(ray.origin);
 
-            if(hitEnemy.health <= 0 && !hitEnemy.isDead){
-                hitEnemy.isDead = true;
-                waveManager.reportEnemyDeath(); // Lapor biar stage progress jalan
-                // Play sound mati atau partikel darah disini
-            }
+            // 4. Lapor kematian
+//            if(hitEnemy.isDead && !hitEnemy.countedAsDead){ // Cek flag dead dari BaseEnemy
+//                waveManager.reportEnemyDeath();
+//                hitEnemy.countedAsDead = true;
+//            }
         }
 
         // Setup origin tracer dari senjata
@@ -744,5 +810,6 @@ public class GameScreen implements Screen {
         if(stage != null) stage.dispose();
         if(uiBatch != null) uiBatch.dispose();
         if(shapeRenderer != null) shapeRenderer.dispose();
+        if(coinModel != null) coinModel.dispose();
     }
 }
