@@ -38,14 +38,40 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.finpro7.oop.entities.BaseEnemy;
 import com.finpro7.oop.entities.Coin;
 import com.finpro7.oop.entities.EnemyFactory;
+import com.finpro7.oop.entities.PlayerStats;
 import com.finpro7.oop.logics.WaveManager;
 import com.finpro7.oop.world.Terrain;
 import com.finpro7.oop.world.weapon.Firearm;
 
+
 public class GameScreen implements Screen {
+
+
+    // ================= PLAYER STATS =================
+    private PlayerStats playerStats;
+    private float maxHealth = 100f;
+    private float health = 100f;
+
+    private float staminaDrainRate = 35f;
+    private float staminaRegenRate = 20f;
+
+    private boolean isSprinting = false;
+    private boolean staminaLocked = false;
+
+    private float staminaRegenDelay = 3f;
+    private float staminaRegenTimer = 0f;
+
+    // --- Stamina behavior ---
+    private float staminaDrainSprint = 8f;   // sprint (SHIFT)
+    private float staminaRegenWalk = 5f;      // jalan WASD
+    private float staminaRegenIdle = 10f;     // diam
+
+
 
     final Main game;
     private Stage stage;
+
+
 
     // Sistem 3D
     private PerspectiveCamera cam;
@@ -126,6 +152,11 @@ public class GameScreen implements Screen {
 
     public GameScreen(final Main game) {
         this.game = game;
+        playerStats = new PlayerStats();
+
+        playerStats.staminaDrainSprint = 12f;
+        playerStats.staminaRegenWalk  = 6f;
+        playerStats.staminaRegenIdle  = 10f;
         stage = new Stage(new ScreenViewport());
 
         setup3DWorld();
@@ -543,6 +574,35 @@ public class GameScreen implements Screen {
         }
         uiBatch.end();
 
+        shapeRenderer.setProjectionMatrix(stage.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+// Background
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(20, 40, 220, 18);
+        shapeRenderer.rect(20, 15, 220, 12);
+
+// Health
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(
+            20,
+            40,
+            220 * (playerStats.health / playerStats.maxHealth),
+            18
+        );
+
+// Stamina
+        shapeRenderer.setColor(Color.ORANGE);
+        shapeRenderer.rect(
+            20,
+            15,
+            220 * (playerStats.stamina / playerStats.maxStamina),
+            12
+        );
+
+        shapeRenderer.end();
+
+
         stage.draw();
     }
 
@@ -559,8 +619,58 @@ public class GameScreen implements Screen {
     }
 
     private void updateMovement(float delta){
-        float speed = moveSpeed;
-        if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) speed *= sprintMul;
+        // ================= STAMINA LOGIC =================
+        boolean isMoving =
+            Gdx.input.isKeyPressed(Input.Keys.W) ||
+                Gdx.input.isKeyPressed(Input.Keys.A) ||
+                Gdx.input.isKeyPressed(Input.Keys.S) ||
+                Gdx.input.isKeyPressed(Input.Keys.D);
+
+// UPDATE PLAYER STATS (WAJIB SETIAP FRAME)
+        playerStats.update(delta, isMoving);
+
+        boolean shiftPressed = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
+
+        if (isMoving && shiftPressed && playerStats.stamina > 0) {
+            // SPRINT → stamina turun
+            isSprinting = true;
+            playerStats.stamina -= staminaDrainSprint * delta;
+            staminaRegenTimer = 0f;
+
+            if (playerStats.stamina <= 0) {
+                playerStats.stamina = 0;
+                staminaLocked = true;
+            }
+
+        } else {
+            isSprinting = false;
+
+            if (!shiftPressed) {
+                if (isMoving) {
+                    // JALAN BIASA → regen lambat
+                    if (!staminaLocked) {
+                        playerStats.stamina += staminaRegenWalk * delta;
+                    }
+                } else {
+                    // DIAM → regen cepat
+                    if (staminaLocked) {
+                        staminaRegenTimer += delta;
+                        if (staminaRegenTimer >= staminaRegenDelay) {
+                            staminaLocked = false;
+                        }
+                    } else {
+                        playerStats.stamina += staminaRegenIdle * delta;
+                    }
+                }
+            }
+        }
+
+// BATASI NILAI
+        playerStats.stamina = MathUtils.clamp(playerStats.stamina, 0f, playerStats.maxStamina);
+
+// SPEED PLAYER
+        float speed = isSprinting ? moveSpeed * sprintMul : moveSpeed;
+
 
         Vector3 forward = new Vector3(cam.direction.x, 0f, cam.direction.z).nor();
         Vector3 right = new Vector3(forward).crs(Vector3.Y).nor();
@@ -621,9 +731,16 @@ public class GameScreen implements Screen {
             }
         }
 
-        if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && isGrounded){
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
+            && isGrounded
+            && playerStats.stamina > 0f) {
+
             verticalVelocity = jumpForce;
             isGrounded = false;
+
+
+            playerStats.stamina -= 10f;
+            if (playerStats.stamina < 0) playerStats.stamina = 0;
         }
     }
 
