@@ -19,8 +19,10 @@ public abstract class Firearm {
     public float knockback = 2f;
     public float knockForward = -.375f;
 
-    public int ammoInClip = 30;
-    public int maxAmmoInClip = 30;
+    public int ammoInClip;      // peluru yang ada di dalam pistol/ak sekarang
+    public int maxAmmoInClip;   // kapasitas maksimal magazine (7 atau 20)
+    public int totalAmmo;       // cadangan peluru keseluruhan (30 atau 60)
+    public boolean isReloading = false; // penanda lagi ganti magazine
     public int clips = 3;
     public float recoverySpeed = 8.0f;
     public float reloadSpeed = 1.0f;
@@ -40,8 +42,6 @@ public abstract class Firearm {
     public boolean isAuto = true;
     public int burstCount = 1;
     public float noAutoWaitTime = 0f;
-    public float soundPitchBase = 1.0f;
-    public float soundVolume = 1.0f;
 
     public Firearm(Object placeholder, AkRifle.Template template) {
         if (template != null) {
@@ -90,7 +90,43 @@ public abstract class Firearm {
 
     public void shoot() {
         // Fungsi saat tombol tembak ditekan
+        if (isReloading) return; // kalau lagi reload gak bisa nembak
+        if (isReloading) {
+            System.out.println("Memasukkan peluru...");
+            return;
+        }
+
+        if (ammoInClip <= 0) {
+            System.out.println("Klik! Peluru habis. Tekan R untuk reload!");
+            return;
+        }
+
+        ammoInClip--;
         recoveryTranslateZ = 0.15f;
         recoveryPitch = 10f;
+    }
+
+    public void reload() {
+        // Cek apakah sudah penuh atau cadangan habis
+        if (isReloading || ammoInClip == maxAmmoInClip || totalAmmo <= 0) return;
+
+        isReloading = true;
+        System.out.println("Reloading... (Tunggu 2 detik)");
+
+        com.badlogic.gdx.utils.Timer.schedule(new com.badlogic.gdx.utils.Timer.Task() {
+            @Override
+            public void run() {
+                int butuh = maxAmmoInClip - ammoInClip;
+                if (totalAmmo >= butuh) {
+                    totalAmmo -= butuh;
+                    ammoInClip = maxAmmoInClip;
+                } else {
+                    ammoInClip += totalAmmo;
+                    totalAmmo = 0;
+                }
+                isReloading = false; // Kunci dibuka setelah 2 detik
+                System.out.println("Reload Selesai! Siap tempur.");
+            }
+        }, 2.0f);
     }
 }

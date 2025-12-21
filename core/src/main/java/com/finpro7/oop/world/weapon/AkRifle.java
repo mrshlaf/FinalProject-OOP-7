@@ -13,13 +13,9 @@ public class AkRifle extends Firearm {
     public static class Template {
         public ModelInstance model;
         public Vector3 muzzlePoint;
-        public Sound shootSound;
-        public Sound reloadSound;
         public Template(ModelInstance m, Vector3 muz, Sound s, Sound r) {
             this.model = m;
             this.muzzlePoint = muz;
-            this.shootSound = s;
-            this.reloadSound = r;
         }
     }
 
@@ -30,9 +26,13 @@ public class AkRifle extends Firearm {
         // Memanggil constructor Firearm
         super(player, com.finpro7.oop.Main.autoRifleTemplate);
         this.name = "Assault Rifle";
+        this.maxAmmoInClip = 20;  // isi magazine 20
+        this.ammoInClip = 20;     // mulai penuh
+        this.totalAmmo = 100;      // cadangan peluru 60
+        this.damage = 3f;
         this.meshNames.add("ak"); // Nama mesh dasar di file 3D
 
-        this.aimSightY = -0.4f; // Mengatur tinggi (semakin kecil/minus semakin turun)
+        this.aimSightY = -0.4f; // Mengatur tinggi
         this.aimSightZ = -0.5f;  // Mengatur Mundur/Maju
     }
 

@@ -389,9 +389,15 @@ public class GameScreen implements Screen {
                 }
             }
 
-            // WEAPON INPUT (Punya Kamu)
+            // WEAPON INPUT
             if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) playerWeapon = inventory.get(0);
             if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) playerWeapon = inventory.get(1);
+            // Tombol reload manual tekan R
+            if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+                if (playerWeapon != null) {
+                    playerWeapon.reload();
+                }
+            }
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) shoot();
 
             if (bulletTracerTimer > 0) bulletTracerTimer -= delta;
@@ -656,6 +662,10 @@ public class GameScreen implements Screen {
     // --- LOGIKA SHOOTING & DAMAGE ---
     private void shoot() {
         if (playerWeapon == null) return;
+        if (playerWeapon.ammoInClip <= 0 || playerWeapon.isReloading) {
+            System.out.println("Gagal nembak: Peluru habis!");
+            return;
+        }
         playerWeapon.shoot();
         cam.update();
 
