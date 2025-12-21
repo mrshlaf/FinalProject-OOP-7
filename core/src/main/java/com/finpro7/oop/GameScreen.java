@@ -3,7 +3,6 @@ package com.finpro7.oop;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -44,7 +43,6 @@ public class GameScreen implements Screen {
     private ModelBatch modelBatch;
 
     // Asset dan World
-    private AssetManager assets;
     private Terrain terrain;
     private PerlinNoise perlin;
     private Model treeModel;
@@ -67,7 +65,7 @@ public class GameScreen implements Screen {
     private float gravity = 30f;
     private float jumpForce = 15f;
     private boolean isGrounded = false;
-    private int skipMouseFrames = 3;
+//    private int skipMouseFrames = 3;
 
     // Sistem Kabut
     private Model fogModel;
@@ -117,28 +115,9 @@ public class GameScreen implements Screen {
         perlin.frequencyZ = 0.08f;
         perlin.offsetX = MathUtils.random(0f, 999f); // geser seed random
         perlin.offsetZ = MathUtils.random(0f, 999f);
-        assets = new AssetManager(); // setup asset manager, buat model model 3d
-//        assets.setLoader(Model.class, ".g3db", new G3dModelLoader(new UBJsonReader()));
-        // load file model dari folder assets/models/
-        assets.load("models/pohon.g3dj", Model.class);
-        assets.load("textures/batang_pohon.png", Texture.class);
-        assets.load("textures/daun_pohon.png", Texture.class);
-        assets.load("models/dajjal.g3db", Model.class);
-        assets.load("models/majuj/majuj.g3db", Model.class);
-        assets.load("models/yajuj/yajuj.g3db", Model.class);
-        // load texture model
-        assets.load("models/dajjal_diffuse.png", Texture.class);
-        assets.load("models/dajjal_glow.png", Texture.class);
-        assets.load("models/majuj/majuj1.png", Texture.class);
-        assets.load("models/majuj/majuj2.png", Texture.class);
-        assets.load("models/yajuj/yajuj1.png", Texture.class);
-        assets.load("models/yajuj/yajuj2.png", Texture.class);
-        assets.load("models/yajuj/yajuj3.png", Texture.class);
-        assets.load("models/yajuj/yajuj4.png", Texture.class);
-        assets.finishLoading(); // ngeloading dulu biar simpel codinganny
         // ambil model buat pohon, dllnya
-        treeModel = assets.get("models/pohon.g3dj", Model.class);
-        dajjalModel = assets.get("models/yajuj/yajuj.g3db", Model.class);
+        treeModel = game.assets.get("models/pohon.g3dj", Model.class);
+        dajjalModel = game.assets.get("models/yajuj/yajuj.g3db", Model.class);
         terrain = new Terrain(env, perlin, 254, 254, 320f, 320f);
         createFogSystem(terrain);
         // biar daunnya transparan & keliatan dari dua sisi
@@ -284,8 +263,6 @@ public class GameScreen implements Screen {
         } else {
             Gdx.input.setCursorCatched(true);
             Gdx.input.setInputProcessor(null);
-            skipMouseFrames = 3;
-
             overlay.setVisible(false);
             pauseContainer.setVisible(false);
         }
@@ -339,21 +316,18 @@ public class GameScreen implements Screen {
         renderContext.begin();
         terrain.render(cam, renderContext);
         renderContext.end();
-
         modelBatch.begin(cam);
         for(ModelInstance tree : treeInstances) modelBatch.render(tree, env);
-
-        Gdx.gl.glDisable(GL20.GL_CULL_FACE);
+        if(dajjal != null) modelBatch.render(dajjal.badanDajjal, env);
+        // suruh GPU selesaikan gambar pohon & dajjal dulu
+        modelBatch.flush();
+//        Gdx.gl.glDisable(GL20.GL_CULL_FACE);
         Gdx.gl.glDepthMask(false);
-        for(ModelInstance fog : fogInstances) modelBatch.render(fog);
+        for(ModelInstance fog : fogInstances) modelBatch.render(fog); // baru render kabut tanpa env biar terang
         Gdx.gl.glDepthMask(true);
-        Gdx.gl.glEnable(GL20.GL_CULL_FACE);
-        if(dajjal != null){
-            // render badanDajjal yang ada di dalem objek dajjal
-            modelBatch.render(dajjal.badanDajjal, env);
-        }
-        modelBatch.end();
+//        Gdx.gl.glEnable(GL20.GL_CULL_FACE);
 
+        modelBatch.end();
         stage.act(delta);
         stage.draw();
     }
@@ -364,7 +338,7 @@ public class GameScreen implements Screen {
         int dx = Gdx.input.getDeltaX();
         int dy = Gdx.input.getDeltaY();
 
-        if(skipMouseFrames > 0){ skipMouseFrames--; return; }
+//        if(skipMouseFrames > 0){ skipMouseFrames--; return; }
 
         yawDeg -= dx * mouseSens;
         pitchDeg -= dy * mouseSens;
@@ -563,7 +537,6 @@ public class GameScreen implements Screen {
     public void dispose() {
         if(terrain != null) terrain.dispose();
         if(modelBatch != null) modelBatch.dispose();
-        if(assets != null) assets.dispose();
         if(fogModel != null) fogModel.dispose();
         if(stage != null) stage.dispose();
     }

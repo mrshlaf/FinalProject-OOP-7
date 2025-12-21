@@ -2,7 +2,6 @@ package com.finpro7.oop;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -40,7 +39,6 @@ public class MenuScreen implements Screen {
     private ModelBatch modelBatch;
     private RenderContext renderContext;
 
-    private AssetManager assets;
     private Terrain terrain;
     private PerlinNoise perlin;
     private Model treeModel;
@@ -156,11 +154,7 @@ public class MenuScreen implements Screen {
         perlin.offsetX = MathUtils.random(0f, 5000f);
         perlin.offsetZ = MathUtils.random(0f, 5000f);
 
-        assets = new AssetManager();
-        assets.load("models/pohon.g3dj", Model.class);
-        assets.finishLoading();
-
-        treeModel = assets.get("models/pohon.g3dj", Model.class);
+        treeModel = game.assets.get("models/pohon.g3dj", Model.class);
 
         for(Material mat : treeModel.materials){
             mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA),
@@ -223,7 +217,6 @@ public class MenuScreen implements Screen {
     public void dispose() {
         stage.dispose();
         if(modelBatch != null) modelBatch.dispose();
-        if(assets != null) assets.dispose();
         if(terrain != null) terrain.dispose();
     }
 }

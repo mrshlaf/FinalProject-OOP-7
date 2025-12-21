@@ -2,11 +2,13 @@ package com.finpro7.oop;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -19,6 +21,7 @@ public class Main extends Game {
     // Skin kita buat static agar bisa diakses langsung dari class lain (MenuScreen/GameScreen)
     // tanpa perlu passing parameter yang berlebihan.
     public static Skin skin;
+    public AssetManager assets; // load asset manager di awal
 
     // Palet warna tema game
     private final Color COLOR_GOLD = new Color(1f, 0.84f, 0.0f, 1f);
@@ -28,7 +31,7 @@ public class Main extends Game {
     public void create() {
         // Generate style UI secara prosedural sebelum masuk ke game
         createStyle();
-
+        loadAssets();
         // Langsung transisi ke MenuScreen sebagai tampilan awal
         this.setScreen(new MenuScreen(this));
     }
@@ -115,4 +118,26 @@ public class Main extends Game {
         windowStyle.titleFontColor = COLOR_GOLD;
         skin.add("default", windowStyle);
     }
+
+    private void loadAssets(){
+        assets = new AssetManager(); // setup asset manager, buat model model 3d
+        // load file model dari folder assets/models/
+        assets.load("models/pohon.g3dj", Model.class);
+        assets.load("textures/batang_pohon.png", Texture.class);
+        assets.load("textures/daun_pohon.png", Texture.class);
+        assets.load("models/dajjal.g3db", Model.class);
+        assets.load("models/majuj/majuj.g3db", Model.class);
+        assets.load("models/yajuj/yajuj.g3db", Model.class);
+        // load texture model
+        assets.load("models/dajjal_diffuse.png", Texture.class);
+        assets.load("models/dajjal_glow.png", Texture.class);
+        assets.load("models/majuj/majuj1.png", Texture.class);
+        assets.load("models/majuj/majuj2.png", Texture.class);
+        assets.load("models/yajuj/yajuj1.png", Texture.class);
+        assets.load("models/yajuj/yajuj2.png", Texture.class);
+        assets.load("models/yajuj/yajuj3.png", Texture.class);
+        assets.load("models/yajuj/yajuj4.png", Texture.class);
+        assets.finishLoading(); // ngeloading dulu biar simpel codinganny
+    }
+
 }
