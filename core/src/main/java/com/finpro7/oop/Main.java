@@ -18,88 +18,73 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class Main extends Game {
 
-    // Skin kita buat static agar bisa diakses langsung dari class lain (MenuScreen/GameScreen)
-    // tanpa perlu passing parameter yang berlebihan.
+    // skin static buat bisa diakses langsung dari class lain (MenuScreen/GameScreen)
     public static Skin skin;
     public AssetManager assets; // load asset manager di awal
 
-    // Palet warna tema game
+    // palet warna tema game
     private final Color COLOR_GOLD = new Color(1f, 0.84f, 0.0f, 1f);
     private final Color COLOR_BLOOD = new Color(0.9f, 0.1f, 0.1f, 1f);
 
     @Override
     public void create() {
-        // Generate style UI secara prosedural sebelum masuk ke game
+        // generate style UI secara prosedural sebelum masuk ke game
         createStyle();
         loadAssets();
-        // Langsung transisi ke MenuScreen sebagai tampilan awal
+        // langsung transisi ke MenuScreen buat tampilan awal
         this.setScreen(new MenuScreen(this));
     }
 
     @Override
     public void render() {
-        // Penting: super.render() akan memanggil method render() milik screen yang sedang aktif.
-        // Jika dihapus, screen tidak akan menggambar apa-apa.
+        // super.render() buat manggil method render() milik screen yg lagi aktif
         super.render();
     }
 
     @Override
     public void dispose() {
-        // Bersihkan resource skin global saat aplikasi ditutup total
+        // bersihin resource skin global pas game ditutup
         if (skin != null) skin.dispose();
     }
 
-    // Membangun Skin UI secara programatis (tanpa file .json eksternal)
-    // Ini mencakup Font, Texture dasar, dan Style untuk Widget (Label, Button, Window)
+    // buat Skin UI yg programatis gk pake file .json eksternal
     private void createStyle() {
         skin = new Skin();
-
-        // Setup BitmapFont
-        // Kita scale up font default agar tajam dan terbaca jelas
+        // setup BitmapFont
+        // scale up font default biar tajam dan kabaca jelas
         BitmapFont fontTitle = new BitmapFont();
         fontTitle.getData().setScale(5.0f);
         skin.add("font-title", fontTitle);
-        skin.add("default-font", fontTitle); // Mapping default diperlukan oleh beberapa widget dialog
-
+        skin.add("default-font", fontTitle); // mapping default di beberapa widget dialog
         BitmapFont fontButton = new BitmapFont();
         fontButton.getData().setScale(1.5f);
         skin.add("font-button", fontButton);
-
         BitmapFont fontSmall = new BitmapFont();
         fontSmall.getData().setScale(1.0f);
         skin.add("font-small", fontSmall);
-
-        // Membuat tekstur putih 1x1 pixel secara runtime
-        // Teknik ini efisien untuk membuat warna solid tanpa perlu memuat file gambar
+        // buat tekstur putih 1x1 pixel secara runtime buat bikin warna solid tanpa perlu muat file gambar
         Pixmap p = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         p.setColor(Color.WHITE);
         p.fill();
         Texture whiteTex = new Texture(p);
         skin.add("white", whiteTex);
-        p.dispose(); // Pixmap sudah tidak dibutuhkan setelah jadi Texture
-
-        // Membuat Drawable dasar dan variasi overlay gelap
+        p.dispose(); // pixmap udh gk dibutuhin pas udh jadi Texture
+        // buat Drawable dasar sama variasi overlay gelap
         TextureRegionDrawable whiteDrawable = new TextureRegionDrawable(new TextureRegion(whiteTex));
         Drawable dimDrawable = whiteDrawable.tint(new Color(0f, 0f, 0f, 0.85f));
         skin.add("dim-overlay", dimDrawable);
-
-        // Definisi Style Label
+        // definisiin style Label
         Label.LabelStyle titleStyle = new Label.LabelStyle(fontTitle, COLOR_GOLD);
         skin.add("title", titleStyle);
-
         Label.LabelStyle shadowStyle = new Label.LabelStyle(fontTitle, Color.BLACK);
         skin.add("shadow", shadowStyle);
-
         Label.LabelStyle subStyle = new Label.LabelStyle(fontButton, COLOR_BLOOD);
         skin.add("subtitle", subStyle);
-
         Label.LabelStyle textStyle = new Label.LabelStyle(fontSmall, Color.GRAY);
         skin.add("text", textStyle);
-
-        // Style default fallback
+        // style default fallback
         skin.add("default", new Label.LabelStyle(fontButton, Color.WHITE));
-
-        // Definisi Style TextButton
+        // definisi style TextButton
         // Kita gunakan tinting pada drawable putih untuk efek hover dan click
         TextButton.TextButtonStyle btnStyle = new TextButton.TextButtonStyle();
         btnStyle.font = fontButton;
@@ -110,8 +95,7 @@ public class Main extends Game {
         btnStyle.overFontColor = COLOR_GOLD;
         skin.add("btn-main", btnStyle);
         skin.add("default", btnStyle);
-
-        // Definisi Style Window (untuk Dialog Pause)
+        // definisiin style window buat dialog pas pause
         Window.WindowStyle windowStyle = new Window.WindowStyle();
         windowStyle.background = dimDrawable;
         windowStyle.titleFont = fontTitle;
@@ -137,7 +121,6 @@ public class Main extends Game {
         assets.load("models/yajuj/yajuj2.png", Texture.class);
         assets.load("models/yajuj/yajuj3.png", Texture.class);
         assets.load("models/yajuj/yajuj4.png", Texture.class);
-        assets.finishLoading(); // ngeloading dulu biar simpel codinganny
+        assets.finishLoading(); // ngeloading dulu biar simpel codingannyaa
     }
-
 }

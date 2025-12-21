@@ -27,8 +27,8 @@ public class DajjalEntity {
     private TingkahLaku tingkahLakuSaatIni;
 
     // list nama animasinya biar gampang ganti ganti kalo salah
-    private final String ANIM_JALAN = "Armature|running"; //walk"; // anim jalan
-    private final String ANIM_PUKUL = "Armature|attack"; // hit"; // anim nyerangnya
+    private final String ANIM_JALAN = "Armature|walk"; // anim jalan
+    private final String ANIM_PUKUL = "Armature|hit"; // anim nyerangnya
     private final String ANIM_MATI = "Armature|dive"; // anim pas mati/diving
     private final String ANIM_MUNCUL = "Armature|emerge"; // anim pas nyihir
 
@@ -43,11 +43,11 @@ public class DajjalEntity {
     }
 
     // buat update logika tiap frame dipanggil di render main
-    public void update(float delta, Vector3 targetPlayer, Terrain terrain){
+    public void update(float delta, Vector3 targetPlayer, Terrain terrain, com.badlogic.gdx.utils.Array<ModelInstance> trees){
         pengaturAnimasi.update(delta); // update frame animasinya dlu
         if (isKoit) return; // kalo mati ga usah mikir
         posisiTarget.set(targetPlayer); // update posisi target alias player
-        if(tingkahLakuSaatIni != null) tingkahLakuSaatIni.jalankanLogika(delta, terrain); // jalanin isi otaknya
+        if(tingkahLakuSaatIni != null) tingkahLakuSaatIni.jalankanLogika(delta, terrain, trees); // jalanin isi otaknya
         // tempelin kaki ke tanah biar ga melayang
         badanDajjal.transform.getTranslation(posisiSaatIni);
         float tinggiTanah = terrain.getHeight(posisiSaatIni.x, posisiSaatIni.z);
@@ -64,7 +64,7 @@ public class DajjalEntity {
     // core dasar otaknya
     abstract class TingkahLaku{
         public abstract void mulai(); // method pas pertama kali behavior ini aktif
-        public abstract void jalankanLogika(float delta, Terrain terrain); // method yg jalan terus terusan
+        public abstract void jalankanLogika(float delta, Terrain terrain, com.badlogic.gdx.utils.Array<ModelInstance> trees); // method yg jalan terus terusan
     }
 
     // ini logika kejar trus pukul
@@ -76,6 +76,8 @@ public class DajjalEntity {
         float timerSerangan = 0f;
         float batasGerak = 2.0f; // buat ngatur durasi gerak maju pas nonjok
         float sudutKunci = 0f; // variabel buat nyimpen arah bidikan pas mulai nonjok
+
+        private final Vector3 tmpPohon = new Vector3(); // buat cek pohon di dajjal
 
         public ModeMemburu(float laju, float jarak){
             this.lajuLari = laju;
@@ -90,7 +92,7 @@ public class DajjalEntity {
         }
 
         @Override
-        public void jalankanLogika(float delta, Terrain terrain){
+        public void jalankanLogika(float delta, Terrain terrain, com.badlogic.gdx.utils.Array<ModelInstance> trees){
             badanDajjal.transform.getTranslation(posisiSaatIni);
             float dx = posisiTarget.x - posisiSaatIni.x;
             float dz = posisiTarget.z - posisiSaatIni.z;
@@ -102,29 +104,45 @@ public class DajjalEntity {
                 sudutYaw = MathUtils.atan2(dx, dz) * MathUtils.radiansToDegrees; // kalo jalan biasa itung langsung ke arah player
             }else sudutYaw = sudutKunci; // kalo lagi nyerang gak ambil dari badan, tapi dari sudutKunci biar lurus terus pas mukul
             // bagian geraknya
+            float moveX = 0f;
+            float moveZ = 0f;
             if(lagiNyerang){
-                float forwardX = MathUtils.sinDeg(sudutYaw);
-                float forwardZ = MathUtils.cosDeg(sudutYaw);
                 if(timerSerangan < batasGerak){
                     float lajuNyerang = 5.0f;
-                    posisiSaatIni.x += forwardX * lajuNyerang * delta;
-                    posisiSaatIni.z += forwardZ * lajuNyerang * delta;
+                    moveX = MathUtils.sinDeg(sudutYaw) * lajuNyerang * delta;
+                    moveZ = MathUtils.cosDeg(sudutYaw) * lajuNyerang * delta;
                 }
             }else{
-                // jalan biasa
-                float dirX = 0;
-                float dirZ = 0;
-                if(jarakKePlayer > 0){
-                    dirX = dx / jarakKePlayer;
-                    dirZ = dz / jarakKePlayer;
-                }
                 if(jarakKePlayer > jarakSerang){
-                    posisiSaatIni.x += dirX * lajuLari * delta;
-                    posisiSaatIni.z += dirZ * lajuLari * delta;
+                    float dirX = dx / jarakKePlayer;
+                    float dirZ = dz / jarakKePlayer;
+                    moveX = dirX * lajuLari * delta;
+                    moveZ = dirZ * lajuLari * delta;
                     if(pengaturAnimasi.current == null || !pengaturAnimasi.current.animation.id.equals(ANIM_JALAN)){
                         pengaturAnimasi.animate(ANIM_JALAN, -1, 2.0f, null, 0.4f);
                     }
                 }else lakukanSerangan();
+            }
+            // cek prediksi nabrak pohonn
+            float nextX = posisiSaatIni.x + moveX;
+            float nextZ = posisiSaatIni.z + moveZ;
+            boolean nabrak = false;
+            float radiusDajjal = 1.0f; // Dajjal agak gede
+            float radiusPohon = 0.8f;
+            float jarakMin2 = (radiusDajjal + radiusPohon) * (radiusDajjal + radiusPohon);
+            for(ModelInstance tree : trees){
+                tree.transform.getTranslation(tmpPohon);
+                float dX = nextX - tmpPohon.x;
+                float dZ = nextZ - tmpPohon.z;
+                if(dX*dX + dZ*dZ < jarakMin2){
+                    nabrak = true;
+                    break;
+                }
+            }
+            // kalo ga nabrak baru bisa gerak
+            if(!nabrak){
+                posisiSaatIni.x += moveX;
+                posisiSaatIni.z += moveZ;
             }
             badanDajjal.transform.setToRotation(Vector3.Y, sudutYaw);
             badanDajjal.transform.setTranslation(posisiSaatIni);
