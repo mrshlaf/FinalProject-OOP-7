@@ -30,7 +30,11 @@ Game ini disubmit untuk memenuhi tugas akhir dan dapat dimainkan melalui **itch.
 
 ## 📜 Latar Belakang & Lore
 
-Game ini berlatar di akhir zaman. Player berperan sebagai satu-satunya harapan umat manusia yang harus mendaki **Gunung Fitnah**. Misi utamanya adalah bertahan hidup dari serangan gelombang **Yajuj & Majuj** di sepanjang jalan spiral gunung, mengumpulkan persenjataan yang semakin canggih, dan menghadapi pertarungan terakhir melawan **Dajjal** di puncak gunung.
+Jadi game ini tuh settingnya pas lagi akhir zaman banget, kita bakal main jadi satu satunya harapan buat nyelametin umat manusia yang tersisa. Misi kita sebenernya simpel tapi berat, yaitu harus mendaki "Gunung Fitnah" yang jalannya muter spiral ke atas kayak obat nyamuk.
+
+Perjalanan kita gak bakal mulus karena bakal dibagi jadi beberapa fase sesuai ketinggian gunungnya. Pas masih di **Kaki Gunung (Stage 1)**, mungkin rasanya masih kyak pemanasan, musuhnya cuma dikit dan jalannya juga santai, tapi begitu mulai nanjak masuk ke **Fase Pertengahan (Stage 2 & 3)**, mulai kerasa deh tuh bedanya, musuh jadi makin alot darahnya dan larinya makin kenceng.
+
+Nahh pas udah **Agak Tinggi (Stage 4 & 5)**, di sini skill kita beneran diuji, musuhnya gak cuma makin tebel, tapi munculnya makin cepet kyak gak dikasih napas, makin banyak juga. Puncaknya ada di **Stage 6 (Neraka)**, ini bener bener chaos parah, bayangin aja musuhnya rame banget sampe 40 biji, darahnya 3 kali lipat lebih tebel, larinya ngebut, dan sekali pukul damagenya sakitnyaa minta ampun. Kalo kita sukses ngelewatin neraka itu, baru deh kita bakal duel satu lawan satu ngadepin bos terakhirnya, si **Dajjal**.
 
 ## 🛠️ Tech Stack
 
@@ -43,56 +47,59 @@ Game ini berlatar di akhir zaman. Player berperan sebagai satu-satunya harapan u
 
 ## ✅ Development Roadmap (TODO List)
 
-Berikut adalah status pengerjaan proyek kami sejauh ini:
+Ini progres pengerjaan game kami sejauh ini. Alhamdulillah semua fitur utama udah **Selesai (Done)** dan siap dimainkan:
 
 ### 🌍 World Generation & Environment
 
-- [x] **Procedural Terrain:** Implementasi Perlin Noise untuk kontur gunung acak.
-- [x] **Spiral Road Logic:** Algoritma _Newton's Iteration_ untuk jalan spiral yang mulus dari kaki hingga puncak.
-- [x] **Vegetation System:** Spawn 600+ pohon dengan logika _Spatial Filtering_ (tidak tumbuh di jalan/puncak) & _Slope Alignment_ (kemiringan pohon disesuaikan dengan lokasi spawn).
-- [x] **Visual Polish:** Transparansi daun (Blending Attribute) & Relative path textures.
-- [ ] **Skybox & Fog:** Menambahkan atmosfer mencekam dan batas pandang seperti akhir zaman.
+- [x] **Procedural Terrain:** Bikin gunung acak otomatis pake _Perlin Noise_, jadi bentuk gunungnya gak monoton.
+- [x] **Spiral Road Logic:** Algoritma _Newton's Iteration_ buat bikin jalanan spiral yang mulus dari bawah sampe puncak gunung.
+- [x] **Vegetation System:** Naro 600+ pohon pake logika pinter (_Spatial Filtering_), jadi pohon gak bakal numbuh ngehalangin jalan atau numpuk di arena boss.
+- [x] **Visual Polish:** Daun pohon transparan (_Blending_) biar realistis, sama tekstur jalan yang nyatu sama tanah.
+- [x] **Atmosphere & Fog:** Kabut prosedural dan langit dinamis (efek petir pas lawan Dajjal) yang diurus sama `WorldRenderer` biar suasana makin mencekam.
 
 ### 🎮 Player Mechanics & Physics
 
-- [x] **Movement System:** WASD Movement dengan _Substepping_ (4 steps) untuk mencegah tembus tebing.
-- [x] **Camera System:** FPS Camera dengan batasan _pitch_ dan anti snap logic.
-- [x] **Jump & Gravity:** Hitungan fisika lompatan dan deteksi tanah.
-- [ ] **Tree Collision:** Optimasi deteksi tabrakan pohon menggunakan _Grid Partitioning_ (Next Priority).
-- [ ] **Weapon System:** Implementasi _Strategy Pattern_ untuk variasi senjata (Pistol, Shotgun, AK47).
+- [x] **Movement System:** Gerakan player (WASD) udah rapi pake _Command Pattern_ (`InputHandler`), jadi kodingannya bersih dan responsif.
+- [x] **Camera System:** Kamera FPS yang gak bikin pusing, udah ada batesan nengok atas-bawah (_pitch clamping_).
+- [x] **Jump & Gravity:** Fisika lompat dan jatuh yang pas, gak melayang layang kayak kapas.
+- [x] **Tree Collision Optimization:** Tabrakan sama ribuan pohon biar gak ngelag karena udah pake sistem kotak kotak (_Spatial Grid_). CPU jadi enteng!
+- [x] **Weapon System:** Sistem senjata canggih (_Strategy Pattern_). Bisa ganti ganti dari Pistol (ada varian Zippy, Chunky, Scoped) sampe AK-47 dengan efek _recoil_ dan _reload_ yang beda.
 
 ### 👾 AI & Enemies
 
-- [ ] **Yajuj Majuj:** Implementasi _Factory Method_ untuk spawn musuh dengan tingkat kesulitan bertingkat sesuai ketinggian gunung.
-- [ ] **Dajjal (Final Boss):**
-  - [ ] 3D Model Loading (`.g3db`/`.g3dj`).
-  - [ ] **Boss Animations:** Implementasi `AnimationController` untuk status _Idle_, _Attack_, _Hit_, dan _Die_.
-  - [ ] Boss AI Pattern & Phase logic.
-- [ ] **Loot Drop System:** Musuh menjatuhkan senjata atau alat lain saat dibunuh.
+- [x] **Yajuj Majuj:** Musuh spawn otomatis pake _Factory Method_. Makin tinggi nanjak gunung, musuhnya makin kuat dan ganas dan juga makin banyak.
+- [x] **Dajjal (Final Boss):**
+    - [x] Model 3D Dajjal dimuat rapi pake `ResourceManager`.
+    - [x] **Boss Animations:** Animasi Dajjal lengkap (Diem, Lari, Mukul) diatur pake controller khusus.
+    - [x] **Boss Logic:** AI Dajjal pinter, bisa ngunci posisi player pas mau mukul dan punya fase ngamuk.
+- [x] **Loot Drop System:** Musuh yang mati bakal ngedrop koin, darah, atau peluru (gacha dikit lahh probabilitasnya).
+- [x] **Particle System:** Efek darah muncrat pas musuh mati udah pake _Object Pool_, jadi memori aman walau bantai banyak musuh sekaligus.
 
 ### 🔌 Backend & System
 
-- [ ] **Score System:** Mengirim data _wave_ tertinggi ke database setelah _Game Over_.
-- [ ] **Authentication:** Login & Register user sebelum masuk main menu.
-- [ ] **Menu & UI:** Main Menu, HUD (Health/Ammo), dan Pause Screen.
+- [x] **Authentication:** Login & Register aman, data user langsung konek ke backend Spring Boot.
+- [x] **Score System:** Duit/Koin yang didapet di game langsung disimpen ke server database, jadi gak bakal ilang kalo game ditutup, ataupun tiba tiba putus koneksi servernya.
+- [x] **Black Market (Shop):** Toko dalem game buat beli senjata atau upgrade pistol pake koin hasil ngebunuh musuh.
+- [x] **Asset Management:** Semua gambar, model 3D, dan suara dimuat di awal pake `ResourceManager` (Singleton), loading sekali doang biar pas main lancar jaya.
+- [x] **UI & HUD:** Tampilan darah, peluru, info wave, dan menu pause yang informatif dan gampang dibaca.
 
 ---
 
 ## 🏗️ Implementasi Design Patterns
 
-Sesuai ketentuan tugas akhir, kami menerapkan 10 Design Pattern berikut untuk memastikan kode yang clean dan scalable serta optimal:
+Sesuai ketentuan tugas akhir, kami nerapin 10 Design Pattern berikut buat mastiin kode yang clean dan scalable serta optimal:
 
-| Pattern                | Kategori   | Implementasi Rencana                                                                 |
-| :--------------------- | :--------- | :----------------------------------------------------------------------------------- |
-| **1. Singleton**       | Creational | Mengelola `AssetManager` dan `MusicManager` agar hanya ada satu instance.            |
-| **2. Factory Method**  | Creational | `EnemyFactory` untuk spawn variasi musuh (Easy, Medium, Hard Yajuj).                 |
-| **3. Object Pool**     | Creational | Manajemen memori untuk _Bullets_ dan _Particles_ agar performa stabil (GC friendly). |
-| **4. Command**         | Behavioral | `InputHandler` untuk membungkus aksi player (Jump, Shoot, Reload).                   |
-| **5. Observer**        | Behavioral | Sistem HUD (UI) yang memantau status Player (Darah berkurang -> UI update).          |
-| **6. State**           | Behavioral | Mengatur status Player (`Idle`, `Run`, `Shoot`) atau Game (`Menu`, `Play`, `Pause`). |
-| **7. Strategy**        | Behavioral | Logika senjata (`WeaponStrategy`), membedakan perilaku Pistol vs Shotgun.            |
-| **8. Template Method** | Behavioral | Algoritma loading level atau inisialisasi AI musuh.                                  |
-| **9. Facade**          | Structural | `WorldRenderer` untuk menyederhanakan kompleksitas rendering 3D di `Main` class.     |
-| **10. Game Loop**      | Pattern    | Custom update loop untuk memisahkan logic physics dan rendering.                     |
+| Pattern                | Kategori   | Implementasi Rencana                                                                                                                                                                                                                              |
+| :--------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1. Singleton**       | Creational | Diterapin di ResourceManager. Jadi semua aset kyak model 3D, tekstur, sama suara dimuat sekali doang di memori, class lain tinggal panggil instance ini, gak perlu loading ulang yang bikin berat.                                                |
+| **2. Factory Method**  | Creational | Pake di EnemyFactory. Ini tuh pabriknya musuh, game gak perlu tau cara bikin Yajuj, Majuj, atau Dajjal. Tinggal minta ke factory, dia yang urus detail spawnnya di koordinat mana.                                                                |
+| **3. Object Pool**     | Creational | Diterapin di ParticleSystem buat efek darah (BloodParticle). Daripada bikin objek baru tiap musuh mati trus dihapus, karna akan bikin sampah memori, mending pake sistem kolam. Partikel yang udah ilang dipake ulang, jadi hemat memori bangett! |
+| **4. Command**         | Behavioral | Ada di InputHandler sama GameCommands. Tombol keyboard (WASD, Spasi, Shift) dibungkus jadi objek perintah, jadi logic gerak gak numpuk di controller pake if-else panjang, tapi kepisah rapi per aksinya.                                         |
+| **5. Observer**        | Behavioral | Dipake di ItemManager (ItemListener) sama PlayerController (WarningListener). Sistemnya kyak langganan info, kalo player dapet koin atau nabrak tembok, sistem ini bakal ngasih tau HUD buat update tampilan skor/warning.                        |
+| **6. State**           | Behavioral | Ini otak dari AI musuh di BaseEnemy. Musuh punya status yang jelas, lagi Emerge (keluar tanah), Chase (ngejar), Attack (mukul), atau Die, perilakunya jadi berubah drastis tergantung statusnya sekarang lagi apa.                                |
+| **7. Strategy**        | Behavioral | Diterapin di sistem senjata (Firearm, Pistol, AkRifle). Tiap senjata punya strategi nembak sendiri, pistol logicnya single shot, AK-47 auto. Kita bisa ganti strategi nembak (ganti senjata) secara realtime.                                     |
+| **8. Template Method** | Behavioral | Ada di StageConfigs. Kita punya cetakan dasar level (BaseStage), nah anak anaknya (Stage 1 sampe 6) tinggal ngisi detail bedanya, kyak jumlah musuh atau multiplier darahnya, kerangkanya tetep ikut induknya.                                    |
+| **9. Facade**          | Structural | Ini ada di WorldRenderer. GameScreen kita gak perlu pusing mikirin ribetnya OpenGL, setting kabut, lighting, atau batch drawing, cukup panggil satu fungsi render(), si facade ini yang ngurus semua keruwetan di belakang layar.                 |
+| **10. Game Loop**      | Pattern    | Ada di GameScreen. Kita pisahin tegas antara updateGameLogic() buat mikir fisika/AI sama render() buat gambar, jadi game jalan mulus, logic gak keganggu sama urusan gambar menggambar.                                                           |
 
 ---
