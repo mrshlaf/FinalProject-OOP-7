@@ -14,11 +14,11 @@ Game ini disubmit untuk memenuhi tugas akhir dan dapat dimainkan melalui **itch.
 ## 👥 Tim Pengembang (Kelompok 7)
 
 | Nama Anggota                   | NPM        | Role  |
-| :----------------------------- | :--------- | :---- |
-| **Caesar Nur Falah Widiyanto** | 2406487052 | _TBA_ |
-| **Marshal Aufa Diliyana**      | 2406346913 | _TBA_ |
-| **Muhammad Hashif Jade**       | 2406396786 | _TBA_ |
-| **Zulfahmi Fajri**             | 2406345425 | _TBA_ |
+| :----------------------------- | :--------- |:------|
+| **Caesar Nur Falah Widiyanto** | 2406487052 | Mengelola pipeline aset visual dari tahap mentah hingga siap render di dalam engine. Bertanggung jawab memastikan seluruh model 3D, tekstur, dan elemen visual terintegrasi secara optimal, menjaga kualitas estetika permainan tetap tinggi tanpa membebani performa memori dan rendering. |
+| **Marshal Aufa Diliyana**      | 2406346913 | Memegang peran vital dalam pengembangan logika sistem utama dan arsitektur backend aplikasi. Bertanggung jawab penuh atas Game State Management yang mengatur alur permainan, serta membangun sistem Login Screen, otentikasi user, dan logika navigasi menu yang dinamis untuk memastikan integrasi sistem yang mulus. |
+| **Muhammad Hashif Jade**       | 2406396786 | Berfokus pada implementasi teknis sistem pertempuran (Combat System) dan responsivitas kontrol karakter. Menangani eksekusi interaksi antar-objek secara presisi, termasuk hitbox dan damage calculation, untuk menciptakan sensasi aksi yang intens, responsif, dan seimbang bagi pemain. |
+| **Zulfahmi Fajri**             | 2406345425 | Bertindak sebagai Lead Programmer yang merancang algoritma inti gameplay dan aturan dunia permainan. Bertanggung jawab mengintegrasikan logika mekanik yang kompleks dengan desain lingkungan 3D, serta memastikan seluruh interaksi dan fisika dalam game berjalan logis, kohesif, dan stabil.      |
 
 ## 👨‍🏫 Aslab Pendamping
 
