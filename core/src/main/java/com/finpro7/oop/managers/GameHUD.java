@@ -79,7 +79,7 @@ public class GameHUD {
         uiBatch = new SpriteBatch();
 
         // muat gambar crosshair dari aset
-        crosshairTex = game.assets.get("textures/crosshair.png", Texture.class);
+        crosshairTex = ResourceManager.getInstance().assets.get("textures/crosshair.png", Texture.class);
         hitMarkerTex = crosshairTex; // pake gambar yg sama aja biar hemat
         hitWrapper = new TextureRegion(hitMarkerTex);
 

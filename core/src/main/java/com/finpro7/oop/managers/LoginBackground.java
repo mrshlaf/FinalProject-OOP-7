@@ -58,7 +58,7 @@ public class LoginBackground {
         perlin.offsetX = MathUtils.random(0f, 5000f);
         perlin.offsetZ = MathUtils.random(0f, 5000f);
 
-        treeModel = game.assets.get("models/pohon.g3dj", Model.class);
+        treeModel = ResourceManager.getInstance().assets.get("models/pohon.g3dj", Model.class);
 
         for(com.badlogic.gdx.graphics.g3d.Material mat : treeModel.materials){
             mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA),

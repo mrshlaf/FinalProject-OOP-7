@@ -130,9 +130,9 @@ public class GameScreen implements Screen {
         });
 
         // setup enemy system
-        Model yajujM = game.assets.get("models/yajuj/yajuj.g3db", Model.class);
-        Model majujM = game.assets.get("models/majuj/majuj.g3db", Model.class);
-        Model dajjalM = game.assets.get("models/dajjal.g3db", Model.class);
+        Model yajujM = ResourceManager.getInstance().assets.get("models/yajuj/yajuj.g3db", Model.class);
+        Model majujM = ResourceManager.getInstance().assets.get("models/majuj/majuj.g3db", Model.class);
+        Model dajjalM = ResourceManager.getInstance().assets.get("models/dajjal.g3db", Model.class);
         enemyFactory = new EnemyFactory(yajujM, majujM, dajjalM);
 
         waveManager = new WaveManager();
@@ -165,8 +165,8 @@ public class GameScreen implements Screen {
         Model coinM = new ModelBuilder().createCylinder(1f, 0.1f, 1f, 20,
             new Material(ColorAttribute.createDiffuse(Color.GOLD)),
             VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        Model healthM = game.assets.get("models/medkit.g3db", Model.class);
-        Model ammoM = game.assets.get("models/ammo.g3db", Model.class);
+        Model healthM = ResourceManager.getInstance().assets.get("models/medkit.g3db", Model.class);
+        Model ammoM = ResourceManager.getInstance().assets.get("models/ammo.g3db", Model.class);
 
         itemManager = new ItemManager(coinM, healthM, ammoM, playerStats);
 
@@ -193,7 +193,7 @@ public class GameScreen implements Screen {
         perlin.offsetX = MathUtils.random(0f, 999f);
         perlin.offsetZ = MathUtils.random(0f, 999f);
 
-        treeModel = game.assets.get("models/pohon.g3dj", Model.class);
+        treeModel = ResourceManager.getInstance().assets.get("models/pohon.g3dj", Model.class);
 
         // bikin terrain, environmentnya ambil dari renderer
         terrain = new Terrain(worldRenderer.getEnvironment(), perlin, 254, 254, 320f, 320f);

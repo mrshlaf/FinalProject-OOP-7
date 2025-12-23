@@ -1,7 +1,6 @@
 package com.finpro7.oop;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -10,20 +9,16 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
+import com.finpro7.oop.managers.ResourceManager;
 import com.finpro7.oop.world.weapon.AkRifle;
 
 public class Main extends Game {
 
     public static Skin skin;
-    public AssetManager assets;
 
     // var buat template senjata biar bisa diakses global
     public static AkRifle.Template autoRifleTemplate;
@@ -34,12 +29,13 @@ public class Main extends Game {
 
     @Override
     public void create() {
-        assets = new AssetManager();
+        // panggil singleton buat load aset
+        ResourceManager.getInstance().loadAllAssets();
+        // tunggu sampe kelar loading (blocking)
+        ResourceManager.getInstance().assets.finishLoading();
         createStyle();
-        loadAssets();
-        // ambil modelnya dulu dari assets
-        weaponsModel = assets.get("models/weapons.g3db", Model.class);
-
+        // ambil modelnya pake akses singleton
+        weaponsModel = ResourceManager.getInstance().assets.get("models/weapons.g3db", Model.class);
         autoRifleTemplate = new com.finpro7.oop.world.weapon.AkRifle.Template(
             new ModelInstance(weaponsModel),
             new Vector3(0, 0, 0)
@@ -56,7 +52,8 @@ public class Main extends Game {
     @Override
     public void dispose() {
         if (skin != null) skin.dispose();
-        if (assets != null) assets.dispose();
+        // dispose singletonnya
+        ResourceManager.getInstance().dispose();
     }
 
     private void createStyle() {
@@ -133,41 +130,5 @@ public class Main extends Game {
         tfStyle.cursor = whiteDrawable.tint(COLOR_GOLD);
         tfStyle.selection = whiteDrawable.tint(Color.BLUE);
         skin.add("default", tfStyle);
-    }
-
-    private void loadAssets(){
-
-        // load models
-        assets.load("models/pohon.g3dj", Model.class);
-        assets.load("models/dajjal.g3db", Model.class);
-        assets.load("models/majuj/majuj.g3db", Model.class);
-        assets.load("models/yajuj/yajuj.g3db", Model.class);
-        assets.load("models/medkit.g3db", Model.class);
-        assets.load("models/ammo.g3db", Model.class);
-
-        // load textures
-        assets.load("textures/batang_pohon.png", Texture.class);
-        assets.load("textures/daun_pohon.png", Texture.class);
-
-        assets.load("models/dajjal_diffuse.png", Texture.class);
-        assets.load("models/dajjal_glow.png", Texture.class);
-
-        assets.load("models/majuj/majuj1.png", Texture.class);
-        assets.load("models/majuj/majuj2.png", Texture.class);
-
-        assets.load("models/yajuj/yajuj1.png", Texture.class);
-        assets.load("models/yajuj/yajuj2.png", Texture.class);
-        assets.load("models/yajuj/yajuj3.png", Texture.class);
-        assets.load("models/yajuj/yajuj4.png", Texture.class);
-
-        assets.load("models/ammo.png", Texture.class);
-        assets.load("models/bullet1.png", Texture.class);
-        assets.load("models/bullet2.png", Texture.class);
-
-        assets.load("models/weapons.g3db", Model.class);
-        assets.load("textures/crosshair.png", Texture.class);
-
-        // finish loading blocking sampai semua ke load
-        assets.finishLoading();
     }
 }
