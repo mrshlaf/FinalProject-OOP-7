@@ -6,8 +6,8 @@
 
 ## 🔗 Download & Play
 
-Game ini disubmit untuk memenuhi tugas akhir dan dapat dimainkan melalui **itch.io**:
-👉 **[Link Menuju Halaman Game di itch.io]** (Akan diupdate pada tanggal 21 Des 2025)
+Game ini disubmit buat menuhin tugas akhir dan sekarang udah bisa kalian download atau mainin langsung lewat **itch.io**:
+👉 **[Klik di sini buat main Dajjal: The Last War](https://mrshlaf.itch.io/dajjal-the-last-war)**
 
 ---
 
